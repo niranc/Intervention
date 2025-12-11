@@ -209,7 +209,7 @@ class Intervention:
             "-u", url,
         ] + templates_to_use + [
             "-silent",
-            "-json"
+            "-jsonl"
         ]
         
         try:
