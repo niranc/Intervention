@@ -183,15 +183,25 @@ class Intervention:
         templates_to_use = []
         if tech_detect_path.exists():
             templates_to_use.extend(["-t", str(tech_detect_path)])
+            if self.verbose:
+                console.print(f"  [dim]Template trouvé: {tech_detect_path}[/dim]")
         if favicon_path.exists():
             templates_to_use.extend(["-t", str(favicon_path)])
+            if self.verbose:
+                console.print(f"  [dim]Template trouvé: {favicon_path}[/dim]")
         if exposures_path.exists():
             templates_to_use.extend(["-t", str(exposures_path)])
+            if self.verbose:
+                console.print(f"  [dim]Dossier trouvé: {exposures_path}[/dim]")
         if exposed_panels_path.exists():
             templates_to_use.extend(["-t", str(exposed_panels_path)])
+            if self.verbose:
+                console.print(f"  [dim]Dossier trouvé: {exposed_panels_path}[/dim]")
         
         if not templates_to_use:
             console.print("[yellow]⚠[/yellow] Aucun template nuclei trouvé")
+            if self.verbose:
+                console.print(f"  [dim]Recherche dans: {self.nuclei_templates_path}[/dim]")
             return detected
         
         cmd = [
@@ -205,6 +215,7 @@ class Intervention:
         try:
             if self.verbose:
                 console.print(f"[cyan]🔍[/cyan] Détection des technologies pour {url}")
+                console.print(f"  [dim]Commande: {' '.join(cmd)}[/dim]")
             
             result = subprocess.run(
                 cmd,
@@ -213,39 +224,61 @@ class Intervention:
                 timeout=300
             )
             
-            for line in result.stdout.splitlines():
-                if not line.strip():
-                    continue
-                try:
-                    data = json.loads(line)
-                    tech_name = None
-                    
-                    if "matcher-name" in data:
-                        tech_name = data["matcher-name"]
-                    elif "info" in data:
-                        if "name" in data["info"]:
-                            tech_name = data["info"]["name"]
-                        elif "tags" in data["info"]:
-                            tags = data["info"]["tags"]
-                            if isinstance(tags, list) and tags:
-                                tech_name = tags[0]
-                    
-                    if tech_name:
-                        tech_name = self._normalize_tech_name(tech_name)
-                        detected.add(tech_name)
+            if result.returncode != 0:
+                if self.verbose:
+                    console.print(f"[yellow]⚠[/yellow] nuclei a retourné le code {result.returncode}")
+                    if result.stderr:
+                        console.print(f"[yellow]Erreur: {result.stderr}[/yellow]")
+                else:
+                    console.print(f"[yellow]⚠[/yellow] Erreur lors de la détection")
+            
+            if result.stdout:
+                for line in result.stdout.splitlines():
+                    if not line.strip():
+                        continue
+                    try:
+                        data = json.loads(line)
+                        tech_name = None
+                        
+                        if "matcher-name" in data:
+                            tech_name = data["matcher-name"]
+                        elif "info" in data:
+                            if "name" in data["info"]:
+                                tech_name = data["info"]["name"]
+                            elif "tags" in data["info"]:
+                                tags = data["info"]["tags"]
+                                if isinstance(tags, list) and tags:
+                                    tech_name = tags[0]
+                        
+                        if tech_name:
+                            tech_name = self._normalize_tech_name(tech_name)
+                            detected.add(tech_name)
+                            if self.verbose:
+                                console.print(f"  [green]✓[/green] {tech_name}")
+                    except json.JSONDecodeError:
                         if self.verbose:
-                            console.print(f"  [green]✓[/green] {tech_name}")
-                except json.JSONDecodeError:
-                    continue
+                            console.print(f"  [dim]Ligne non-JSON ignorée: {line[:50]}...[/dim]")
+                        continue
+            
+            if self.verbose:
+                if result.stderr:
+                    console.print(f"  [dim]stderr: {result.stderr[:200]}...[/dim]" if len(result.stderr) > 200 else f"  [dim]stderr: {result.stderr}[/dim]")
+                console.print(f"  [dim]Code de retour: {result.returncode}[/dim]")
+                console.print(f"  [dim]Lignes de sortie: {len(result.stdout.splitlines())}[/dim]")
+                if not detected:
+                    console.print(f"  [yellow]⚠[/yellow] Aucune sortie de nuclei (stdout vide)")
             
         except subprocess.TimeoutExpired:
             console.print(f"[yellow]⚠[/yellow] Timeout lors de la détection pour {url}")
         except FileNotFoundError:
             console.print("[red]Erreur: nuclei n'est pas installé ou n'est pas dans le PATH[/red]")
+            console.print("[yellow]Installez nuclei: https://github.com/projectdiscovery/nuclei#installation[/yellow]")
             sys.exit(1)
         except Exception as e:
+            console.print(f"[red]Erreur lors de la détection: {e}[/red]")
             if self.verbose:
-                console.print(f"[red]Erreur lors de la détection: {e}[/red]")
+                import traceback
+                console.print(f"[dim]{traceback.format_exc()}[/dim]")
         
         return detected
     
