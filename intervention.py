@@ -177,8 +177,8 @@ class Intervention:
         
         tech_detect_path = self.nuclei_templates_path / "http/technologies/tech-detect.yaml"
         favicon_path = self.nuclei_templates_path / "http/technologies/favicon-detect.yaml"
-        exposures_path = ""
-        exposed_panels_path = ""
+        # exposures_path = self.nuclei_templates_path / "http/exposures"
+        # exposed_panels_path = self.nuclei_templates_path / "http/exposed-panels"
         
         templates_to_use = []
         if tech_detect_path.exists():
@@ -189,14 +189,14 @@ class Intervention:
             templates_to_use.extend(["-t", str(favicon_path)])
             if self.verbose:
                 console.print(f"  [dim]Template trouvé: {favicon_path}[/dim]")
-        if exposures_path.exists():
-            templates_to_use.extend(["-t", str(exposures_path)])
-            if self.verbose:
-                console.print(f"  [dim]Dossier trouvé: {exposures_path}[/dim]")
-        if exposed_panels_path.exists():
-            templates_to_use.extend(["-t", str(exposed_panels_path)])
-            if self.verbose:
-                console.print(f"  [dim]Dossier trouvé: {exposed_panels_path}[/dim]")
+        # if exposures_path.exists():
+        #     templates_to_use.extend(["-t", str(exposures_path)])
+        #     if self.verbose:
+        #         console.print(f"  [dim]Dossier trouvé: {exposures_path}[/dim]")
+        # if exposed_panels_path.exists():
+        #     templates_to_use.extend(["-t", str(exposed_panels_path)])
+        #     if self.verbose:
+        #         console.print(f"  [dim]Dossier trouvé: {exposed_panels_path}[/dim]")
         
         if not templates_to_use:
             console.print("[yellow]⚠[/yellow] Aucun template nuclei trouvé")
