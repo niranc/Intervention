@@ -29,14 +29,27 @@ def ensure_repositories(dict_path: str, nuclei_templates_path: str):
         console.print(f"[cyan]📥[/cyan] Clonage de OneListForAll...")
         try:
             parent_dir = dict_dir.parent
+            
+            if parent_dir.name == "OneListForAll":
+                one_list_dir = parent_dir
+            else:
+                one_list_dir = parent_dir / "OneListForAll"
+            
             if not parent_dir.exists():
                 parent_dir.mkdir(parents=True, exist_ok=True)
             
-            one_list_dir = parent_dir / "OneListForAll"
-            if one_list_dir.exists() and (one_list_dir / "dict").exists():
+            if one_list_dir.exists() and (one_list_dir / "dict").exists() and any((one_list_dir / "dict").glob("*.txt")):
                 console.print(f"[green]✓[/green] OneListForAll existe déjà")
             else:
-                if one_list_dir.exists():
+                nested_one_list = one_list_dir / "OneListForAll"
+                if nested_one_list.exists() and (nested_one_list / "dict").exists():
+                    console.print(f"[yellow]⚠[/yellow] Structure imbriquée détectée, nettoyage...")
+                    import shutil
+                    if one_list_dir.exists():
+                        shutil.rmtree(one_list_dir)
+                    nested_one_list.rename(one_list_dir)
+                    console.print(f"[green]✓[/green] Structure corrigée")
+                elif one_list_dir.exists():
                     console.print(f"[yellow]⚠[/yellow] Suppression du répertoire existant...")
                     import shutil
                     shutil.rmtree(one_list_dir)
@@ -502,4 +515,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
