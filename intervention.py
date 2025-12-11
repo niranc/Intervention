@@ -292,6 +292,7 @@ class Intervention:
         
         cmd = [
             "ffuf",
+            "-r",
             "-u", f"{base_url}/FUZZ",
             "-w", wordlist,
             "-o", output_file,
@@ -300,7 +301,6 @@ class Intervention:
             "-t", "50",
             "-s"
         ]
-        
         try:
             if self.verbose:
                 console.print(f"  [cyan]🚀[/cyan] Lancement ffuf avec {tech_name} ({self.mode})")
