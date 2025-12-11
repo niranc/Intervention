@@ -175,7 +175,7 @@ class Intervention:
         """Détecte les technologies avec nuclei"""
         detected = set()
         
-        tech_detect_path = self.nuclei_templates_path / "tech-detect.yaml"
+        tech_detect_path = self.nuclei_templates_path / "http/technologies/tech-detect.yaml"
         favicon_path = self.nuclei_templates_path / "http/technologies/favicon-detect.yaml"
         exposures_path = self.nuclei_templates_path / "http/exposures"
         exposed_panels_path = self.nuclei_templates_path / "http/exposed-panels"
