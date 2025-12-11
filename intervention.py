@@ -18,6 +18,78 @@ from rich.text import Text
 
 console = Console()
 
+
+def ensure_repositories(dict_path: str, nuclei_templates_path: str):
+    """Vérifie et clone les répertoires nécessaires s'ils n'existent pas"""
+    dict_dir = Path(dict_path)
+    nuclei_dir = Path(nuclei_templates_path)
+    
+    if not dict_dir.exists() or not any(dict_dir.glob("*.txt")):
+        console.print(f"[yellow]⚠[/yellow] Le répertoire {dict_path} n'existe pas ou est vide")
+        console.print(f"[cyan]📥[/cyan] Clonage de OneListForAll...")
+        try:
+            parent_dir = dict_dir.parent
+            if not parent_dir.exists():
+                parent_dir.mkdir(parents=True, exist_ok=True)
+            
+            one_list_dir = parent_dir / "OneListForAll"
+            if one_list_dir.exists() and (one_list_dir / "dict").exists():
+                console.print(f"[green]✓[/green] OneListForAll existe déjà")
+            else:
+                if one_list_dir.exists():
+                    console.print(f"[yellow]⚠[/yellow] Suppression du répertoire existant...")
+                    import shutil
+                    shutil.rmtree(one_list_dir)
+                
+                subprocess.run(
+                    ["git", "clone", "https://github.com/six2dez/OneListForAll.git", str(one_list_dir)],
+                    check=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
+                console.print(f"[green]✓[/green] OneListForAll cloné avec succès")
+        except subprocess.CalledProcessError as e:
+            console.print(f"[red]Erreur lors du clonage de OneListForAll[/red]")
+            if e.stderr:
+                console.print(f"[red]Détails: {e.stderr.decode()}[/red]")
+            sys.exit(1)
+        except FileNotFoundError:
+            console.print("[red]Erreur: git n'est pas installé ou n'est pas dans le PATH[/red]")
+            sys.exit(1)
+    
+    if not nuclei_dir.exists() or not any(nuclei_dir.rglob("*.yaml")):
+        console.print(f"[yellow]⚠[/yellow] Le répertoire {nuclei_templates_path} n'existe pas ou est vide")
+        console.print(f"[cyan]📥[/cyan] Clonage de nuclei-templates...")
+        try:
+            parent_dir = nuclei_dir.parent
+            if not parent_dir.exists():
+                parent_dir.mkdir(parents=True, exist_ok=True)
+            
+            if nuclei_dir.exists() and any(nuclei_dir.rglob("*.yaml")):
+                console.print(f"[green]✓[/green] nuclei-templates existe déjà")
+            else:
+                if nuclei_dir.exists():
+                    console.print(f"[yellow]⚠[/yellow] Suppression du répertoire existant...")
+                    import shutil
+                    shutil.rmtree(nuclei_dir)
+                
+                subprocess.run(
+                    ["git", "clone", "https://github.com/projectdiscovery/nuclei-templates.git", str(nuclei_dir)],
+                    check=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
+                console.print(f"[green]✓[/green] nuclei-templates cloné avec succès")
+        except subprocess.CalledProcessError as e:
+            console.print(f"[red]Erreur lors du clonage de nuclei-templates[/red]")
+            if e.stderr:
+                console.print(f"[red]Détails: {e.stderr.decode()}[/red]")
+            sys.exit(1)
+        except FileNotFoundError:
+            console.print("[red]Erreur: git n'est pas installé ou n'est pas dans le PATH[/red]")
+            sys.exit(1)
+
+
 class Intervention:
     def __init__(self, dict_path: str, nuclei_templates_path: str, mode: str = "long", 
                  occurrence: int = 10, verbose: bool = False):
@@ -398,8 +470,16 @@ def main():
         action="store_true",
         help="Mode verbose pour plus de détails"
     )
+    parser.add_argument(
+        "--no-auto-clone",
+        action="store_true",
+        help="Désactive le clonage automatique des répertoires"
+    )
     
     args = parser.parse_args()
+    
+    if not args.no_auto_clone:
+        ensure_repositories(args.dict, args.nuclei_templates)
     
     urls = []
     for url_arg in args.urls:

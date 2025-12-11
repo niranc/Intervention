@@ -59,4 +59,3 @@ python intervention.py urls.txt
 
 Les résultats sont sauvegardés dans `intervention_results_<url>.json` et affichés dans le terminal avec Rich.
 
-# Intervention
