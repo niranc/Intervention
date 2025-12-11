@@ -177,8 +177,8 @@ class Intervention:
         
         tech_detect_path = self.nuclei_templates_path / "http/technologies/tech-detect.yaml"
         favicon_path = self.nuclei_templates_path / "http/technologies/favicon-detect.yaml"
-        #exposures_path = self.nuclei_templates_path / "http/exposures"
-        #exposed_panels_path = self.nuclei_templates_path / "http/exposed-panels"
+        exposures_path = ""
+        exposed_panels_path = ""
         
         templates_to_use = []
         if tech_detect_path.exists():
