@@ -24,8 +24,9 @@ def ensure_repositories(dict_path: str, nuclei_templates_path: str):
     dict_dir = Path(dict_path)
     nuclei_dir = Path(nuclei_templates_path)
     
-    if not dict_dir.exists() or not any(dict_dir.glob("*.txt")):
-        console.print(f"[yellow]⚠[/yellow] Le répertoire {dict_path} n'existe pas ou est vide")
+    if dict_dir.exists() and any(dict_dir.glob("*.txt")):
+        console.print(f"[green]✓[/green] OneListForAll trouvé")
+    else:
         console.print(f"[cyan]📥[/cyan] Clonage de OneListForAll...")
         try:
             parent_dir = dict_dir.parent
@@ -38,29 +39,17 @@ def ensure_repositories(dict_path: str, nuclei_templates_path: str):
             if not parent_dir.exists():
                 parent_dir.mkdir(parents=True, exist_ok=True)
             
-            if one_list_dir.exists() and (one_list_dir / "dict").exists() and any((one_list_dir / "dict").glob("*.txt")):
-                console.print(f"[green]✓[/green] OneListForAll existe déjà")
-            else:
-                nested_one_list = one_list_dir / "OneListForAll"
-                if nested_one_list.exists() and (nested_one_list / "dict").exists():
-                    console.print(f"[yellow]⚠[/yellow] Structure imbriquée détectée, nettoyage...")
-                    import shutil
-                    if one_list_dir.exists():
-                        shutil.rmtree(one_list_dir)
-                    nested_one_list.rename(one_list_dir)
-                    console.print(f"[green]✓[/green] Structure corrigée")
-                elif one_list_dir.exists():
-                    console.print(f"[yellow]⚠[/yellow] Suppression du répertoire existant...")
-                    import shutil
-                    shutil.rmtree(one_list_dir)
-                
-                subprocess.run(
-                    ["git", "clone", "https://github.com/six2dez/OneListForAll.git", str(one_list_dir)],
-                    check=True,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE
-                )
-                console.print(f"[green]✓[/green] OneListForAll cloné avec succès")
+            if one_list_dir.exists():
+                import shutil
+                shutil.rmtree(one_list_dir)
+            
+            subprocess.run(
+                ["git", "clone", "https://github.com/six2dez/OneListForAll.git", str(one_list_dir)],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+            console.print(f"[green]✓[/green] OneListForAll cloné avec succès")
         except subprocess.CalledProcessError as e:
             console.print(f"[red]Erreur lors du clonage de OneListForAll[/red]")
             if e.stderr:
@@ -70,29 +59,26 @@ def ensure_repositories(dict_path: str, nuclei_templates_path: str):
             console.print("[red]Erreur: git n'est pas installé ou n'est pas dans le PATH[/red]")
             sys.exit(1)
     
-    if not nuclei_dir.exists() or not any(nuclei_dir.rglob("*.yaml")):
-        console.print(f"[yellow]⚠[/yellow] Le répertoire {nuclei_templates_path} n'existe pas ou est vide")
+    if nuclei_dir.exists() and any(nuclei_dir.rglob("*.yaml")):
+        console.print(f"[green]✓[/green] nuclei-templates trouvé")
+    else:
         console.print(f"[cyan]📥[/cyan] Clonage de nuclei-templates...")
         try:
             parent_dir = nuclei_dir.parent
             if not parent_dir.exists():
                 parent_dir.mkdir(parents=True, exist_ok=True)
             
-            if nuclei_dir.exists() and any(nuclei_dir.rglob("*.yaml")):
-                console.print(f"[green]✓[/green] nuclei-templates existe déjà")
-            else:
-                if nuclei_dir.exists():
-                    console.print(f"[yellow]⚠[/yellow] Suppression du répertoire existant...")
-                    import shutil
-                    shutil.rmtree(nuclei_dir)
-                
-                subprocess.run(
-                    ["git", "clone", "https://github.com/projectdiscovery/nuclei-templates.git", str(nuclei_dir)],
-                    check=True,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE
-                )
-                console.print(f"[green]✓[/green] nuclei-templates cloné avec succès")
+            if nuclei_dir.exists():
+                import shutil
+                shutil.rmtree(nuclei_dir)
+            
+            subprocess.run(
+                ["git", "clone", "https://github.com/projectdiscovery/nuclei-templates.git", str(nuclei_dir)],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+            console.print(f"[green]✓[/green] nuclei-templates cloné avec succès")
         except subprocess.CalledProcessError as e:
             console.print(f"[red]Erreur lors du clonage de nuclei-templates[/red]")
             if e.stderr:
